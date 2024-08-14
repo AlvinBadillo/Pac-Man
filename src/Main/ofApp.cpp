@@ -1,0 +1,152 @@
+#include "ofApp.h"
+//--------------------------------------------------------------
+void ofApp::setup(){
+	ofSetFrameRate(30);
+	ofSetWindowTitle("C++ Game Box");
+	//States
+	menuState = new MenuState();
+	gameState = new GameState();
+	gameOverState = new GameOverState();
+	pauseState = new PauseState();
+	winState = new WinState();
+	choosePlayerState = new ChoosePlayerState();
+	// Initial State
+	currentState = menuState;
+}
+
+
+//--------------------------------------------------------------
+void ofApp::update(){
+	if (currentState != nullptr){
+		currentState->tick();
+		if(currentState->hasFinished()){
+			if(currentState->getNextState() == "Menu"){
+				currentState = menuState;
+			}else if(currentState->getNextState() == "Game"){
+				string play = choosePlayerState->getPlayer();
+				currentState = gameState;
+				gameState->setSprite(play);
+			}else if(currentState->getNextState() == "over"){
+				gameOverState->setScore(gameState->getFinalScore());
+				currentState = gameOverState;
+			}else if(currentState->getNextState() == "Choose"){
+				currentState->setPreviousState("Choose");
+				currentState = choosePlayerState;
+			}
+			currentState->reset();
+		}
+		if(currentState == gameState){
+			if(currentState->hasPaused()){
+				pauseState->setPause(true);
+				currentState = pauseState;
+			}
+			if(currentState->hasWon()){
+				int finalScore = gameState->getFinalScore();
+				currentState = winState;
+				winState->setFinalScore(finalScore);
+			}
+		
+		}
+		else if(currentState == pauseState){
+			if(!currentState->hasPaused()){  //this will happen when resume button is clicked
+				currentState = gameState;
+				currentState->setPause(false);
+				pauseState->setPause(false);
+			}
+		}
+		else if(currentState == winState){
+			if(winState->getPlayAgain() == true){
+				currentState = gameState;
+				winState->setPlayAgain(false);
+				currentState->reset();
+				
+			}
+		}
+		
+
+	}
+		
+}
+
+//--------------------------------------------------------------
+void ofApp::draw(){
+	if (currentState != nullptr)
+		currentState->render();
+}
+
+//--------------------------------------------------------------
+void ofApp::keyPressed(int key){
+	if (currentState != nullptr){
+		currentState->keyPressed(key);
+	}
+	//Turn Volume Down (Mute)	
+	if( key == '-' ){
+		ofSoundSetVolume(0);
+	}
+	
+	//Turn Volume Back Up
+	if( key == '=' ){
+		ofSoundSetVolume(1);
+	}
+
+}
+
+//--------------------------------------------------------------
+void ofApp::keyReleased(int key){
+	if (currentState != nullptr)
+			currentState->keyReleased(key);
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y ){
+	if (currentState != nullptr)
+		currentState->mouseMoved(x, y);
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDragged(int x, int y, int button){
+	if (currentState != nullptr)
+		currentState->mouseDragged(x, y, button);
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button){
+	if (currentState != nullptr)
+		currentState->mousePressed(x, y, button);
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(int x, int y, int button){
+	if (currentState != nullptr)
+		currentState->mouseReleased(x, y, button);
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseEntered(int x, int y){
+	if (currentState != nullptr)
+			currentState->mouseEntered(x, y);
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseExited(int x, int y){
+	if (currentState != nullptr)
+		currentState->mouseExited(x, y);
+}
+
+//--------------------------------------------------------------
+void ofApp::windowResized(int w, int h){
+	if (currentState != nullptr)
+			currentState->windowResized(w, h);
+}
+
+//--------------------------------------------------------------
+void ofApp::gotMessage(ofMessage msg){
+	if (currentState != nullptr)
+		currentState->gotMessage(msg);
+}
+
+//--------------------------------------------------------------
+void ofApp::dragEvent(ofDragInfo dragInfo){ 
+	if (currentState != nullptr)
+		currentState->dragEvent(dragInfo);
+}
